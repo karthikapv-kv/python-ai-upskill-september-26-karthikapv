@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Journal Frontend Preview</title>
+</head>
+<body>
+  <h1>Secret Journal</h1>
+
+  <input type="text" id="entry" placeholder="Write your journal entry...">
+  <button onclick="submitEntry()">Save Entry</button>
+
+  <p id="status"></p>
+
+  <script>
+    async function submitEntry() {
+      const entry = document.getElementById("entry").value;
+      const status = document.getElementById("status");
+
+      try {
+        const response = await fetch("http://localhost:8000/journal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ entry })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          status.textContent = `Saved! Entry #${result.id} (${result.mood})`;
+        } else {
+          status.textContent = `Error: ${JSON.stringify(result.detail)}`;
+        }
+      } catch (error) {
+        status.textContent = `Request failed: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,15 +1,13 @@
 import csv
-import os
+import sys
 from datetime import datetime
+from pathlib import Path
 
-CSV_FILE = "journal.csv"
-CSV_FIELDS = ["id", "message", "mood", "timestamp"]
+# Allow running this file directly (`python src/cli/journal_cli.py`) as well
+# as as part of the `src` package (`python -m src.cli.journal_cli`).
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-MOOD_SYMBOLS = {
-    "happy": ":)",
-    "sad": ":(",
-    "neutral": ":|",
-}
+from src.core.config import CSV_FIELDS, CSV_FILE, MOOD_SYMBOLS  # noqa: E402
 
 
 def get_user_name() -> str:
@@ -32,7 +30,9 @@ def get_mood() -> str:
     """Prompt for a mood, retrying until it's one of the known moods."""
     mood = input("How do you feel today? (happy/sad/neutral) ").strip().lower()
     while mood not in MOOD_SYMBOLS:
-        mood = input("Invalid mood. Please enter happy, sad, or neutral: ").strip().lower()
+        mood = (
+            input("Invalid mood. Please enter happy, sad, or neutral: ").strip().lower()
+        )
     return mood
 
 
@@ -51,7 +51,8 @@ def create_entry(entry_id: int) -> dict:
 
 def save_entry_to_csv(entry: dict) -> None:
     """Append a single entry to the CSV file, adding a header if it's new."""
-    file_exists = os.path.isfile(CSV_FILE)
+    file_exists = CSV_FILE.is_file()
+    CSV_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     with open(CSV_FILE, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
@@ -62,7 +63,7 @@ def save_entry_to_csv(entry: dict) -> None:
 
 def load_entries() -> list:
     """Load all saved entries from the CSV file, if it exists."""
-    if not os.path.isfile(CSV_FILE):
+    if not CSV_FILE.is_file():
         return []
 
     with open(CSV_FILE, newline="") as f:
